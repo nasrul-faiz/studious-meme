@@ -71,7 +71,7 @@
                 <path d="M4 17l6-6-6-6"></path>
                 <path d="M12 19h8"></path>
               </svg>
-              <span>Custom Command</span>
+              <span>Command</span>
             </a>
             <a class="nav-item" href="#deleted-messages">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -410,38 +410,12 @@
                         <!-- QR frame with scanner corners + scan line -->
                         <div class="qr-frame-wrap" id="waQrFrameWrap" <%= waState.ready ? 'hidden' : '' %>>
                           <div class="qr-frame">
-                            <!-- Corner brackets -->
-                            <span class="qr-corner qr-corner-tl" aria-hidden="true"></span>
-                            <span class="qr-corner qr-corner-tr" aria-hidden="true"></span>
-                            <span class="qr-corner qr-corner-bl" aria-hidden="true"></span>
-                            <span class="qr-corner qr-corner-br" aria-hidden="true"></span>
-
                             <!-- The QR image -->
                             <% if (waState.qrCodeDataUrl) { %>
                             <img src="<%= waState.qrCodeDataUrl %>" alt="WhatsApp QR Code" class="qr" decoding="async" loading="eager" draggable="false" />
                             <% } else { %>
                             <img src="" alt="WhatsApp QR Code" class="qr" decoding="async" loading="eager" draggable="false" hidden />
                             <% } %>
-
-                            <!-- Skeleton shown while waiting for QR -->
-                            <div class="qr-skeleton" id="waQrSkeleton" <%= waState.qrCodeDataUrl ? 'hidden' : '' %>>
-                              <svg class="qr-skeleton-icon" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <rect x="8" y="8" width="26" height="26" rx="4" stroke="currentColor" stroke-width="3"/>
-                                <rect x="14" y="14" width="14" height="14" rx="2" fill="currentColor" opacity="0.35"/>
-                                <rect x="46" y="8" width="26" height="26" rx="4" stroke="currentColor" stroke-width="3"/>
-                                <rect x="52" y="14" width="14" height="14" rx="2" fill="currentColor" opacity="0.35"/>
-                                <rect x="8" y="46" width="26" height="26" rx="4" stroke="currentColor" stroke-width="3"/>
-                                <rect x="14" y="52" width="14" height="14" rx="2" fill="currentColor" opacity="0.35"/>
-                                <rect x="46" y="46" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.35"/>
-                                <rect x="58" y="46" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.35"/>
-                                <rect x="46" y="58" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.35"/>
-                                <rect x="58" y="58" width="8" height="8" rx="1.5" fill="currentColor" opacity="0.35"/>
-                              </svg>
-                              <p class="qr-skeleton-label">Generating QR…</p>
-                            </div>
-
-                            <!-- Scan line animation (shown when QR is ready) -->
-                            <div class="qr-scan-line" id="waQrScanLine" <%= !waState.qrCodeDataUrl ? 'hidden' : '' %> aria-hidden="true"></div>
                           </div>
 
                           <!-- Timer pill + meta below frame -->
@@ -1668,11 +1642,11 @@
     </div>
 
     <script>
-      window.__SCHEDULES__ = <%- JSON.stringify(schedules) %>;
-      window.__CUSTOM_COMMANDS__ = <%- JSON.stringify(customCommands) %>;
-      window.__CHAT_RESPONSE_SETTINGS__ = <%- JSON.stringify(chatResponseSettings) %>;
-      window.__ACCESS_CONTROL_SETTINGS__ = <%- JSON.stringify(accessControlSettings) %>;
-      window.__BUILT_IN_COMMAND_SETTINGS__ = <%- JSON.stringify(builtInCommandSettings) %>;
+      window.__SCHEDULES__ = <%= JSON.stringify(schedules) %>;
+      window.__CUSTOM_COMMANDS__ = <%= JSON.stringify(customCommands) %>;
+      window.__CHAT_RESPONSE_SETTINGS__ = <%= JSON.stringify(chatResponseSettings) %>;
+      window.__ACCESS_CONTROL_SETTINGS__ = <%= JSON.stringify(accessControlSettings) %>;
+      window.__BUILT_IN_COMMAND_SETTINGS__ = <%= JSON.stringify(builtInCommandSettings) %>;
     </script>
     <script src="/public/app.js"></script>
 

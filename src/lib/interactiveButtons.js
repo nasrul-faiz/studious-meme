@@ -303,15 +303,21 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
     );
 
     await sock.relayMessage(jid, msg.message, { messageId: msg.key.id });
+    return {
+      key: {
+        remoteJid: jid,
+        fromMe: true,
+        id: msg.key.id,
+      },
+    };
   }
 
   if (!nativeButtons.length) {
     if (mediaField) {
-      await sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
+      return sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
     } else {
-      await sock.sendMessage(jid, { text: bodyText || ' ' }, options);
+      return sock.sendMessage(jid, { text: bodyText || ' ' }, options);
     }
-    return;
   }
 
   // Compatibility-first path: media+buttons in one message is inconsistent across WA clients.
@@ -326,14 +332,13 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
     }
 
     try {
-      await relayNativeFlow(buttonMessageText, footerText);
-      return;
+      return await relayNativeFlow(buttonMessageText, footerText);
     } catch (nativeFlowError) {
       console.warn('[WA] media follow-up nativeFlow relay failed:', nativeFlowError.message);
     }
 
     try {
-      await sock.sendMessage(
+      return await sock.sendMessage(
         jid,
         {
           text: buttonMessageText,
@@ -342,18 +347,16 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
         },
         options
       );
-      return;
     } catch (interactiveError) {
       console.warn('[WA] media follow-up interactiveButtons failed:', interactiveError.message);
 
       if (shouldStripQuotedFallback) {
         try {
-          await sock.sendMessage(jid, {
+          return await sock.sendMessage(jid, {
             text: buttonMessageText,
             footer: footerText,
             interactiveButtons: nativeButtons,
           });
-          return;
         } catch (retryInteractiveError) {
           console.warn('[WA] media follow-up interactiveButtons retry failed:', retryInteractiveError.message);
         }
@@ -362,7 +365,7 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
 
     if (legacyButtons.length) {
       try {
-        await sock.sendMessage(
+        return await sock.sendMessage(
           jid,
           {
             text: buttonMessageText,
@@ -372,45 +375,40 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
           },
           options
         );
-        return;
       } catch (buttonError) {
         if (!shouldStripQuotedFallback) throw buttonError;
 
-        await sock.sendMessage(jid, {
+        return sock.sendMessage(jid, {
           text: buttonMessageText,
           footer: footerText,
           buttons: legacyButtons,
           headerType: 1,
         });
-        return;
       }
     }
 
     // If legacy button format is unavailable, still send a text fallback.
-    await sock.sendMessage(jid, { text: buttonMessageText }, options);
-    return;
+    return sock.sendMessage(jid, { text: buttonMessageText }, options);
   }
 
   const bodyKey = mediaField ? 'caption' : 'text';
 
   async function sendFinalFallback() {
     if (mediaField) {
-      await sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
-      return;
+      return sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
     }
 
-    await sock.sendMessage(jid, { text: bodyText || ' ' }, options);
+    return sock.sendMessage(jid, { text: bodyText || ' ' }, options);
   }
 
   try {
-    await relayNativeFlow(bodyText || ' ', footerText);
-    return;
+    return await relayNativeFlow(bodyText || ' ', footerText);
   } catch (nativeFlowError) {
     console.warn('[WA] nativeFlow relay failed, trying interactiveButtons:', nativeFlowError.message);
   }
 
   try {
-    await sock.sendMessage(
+    return await sock.sendMessage(
       jid,
       {
         ...mediaField,
@@ -420,32 +418,29 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
       },
       options
     );
-    return;
   } catch (error) {
     // Fallback for Baileys variants that do not support interactiveButtons in sendMessage.
     console.warn('[WA] interactiveButtons via sendMessage failed, trying legacy buttons:', error.message);
 
     if (shouldStripQuotedFallback) {
       try {
-        await sock.sendMessage(jid, {
+        return await sock.sendMessage(jid, {
           ...mediaField,
           [bodyKey]: bodyText || ' ',
           footer: footerText,
           interactiveButtons: nativeButtons,
         });
-        return;
       } catch (retryError) {
         console.warn('[WA] interactiveButtons retry without quoted failed:', retryError.message);
       }
     }
 
     if (!legacyButtons.length) {
-      await sendFinalFallback();
-      return;
+      return sendFinalFallback();
     }
 
     try {
-      await sock.sendMessage(
+      return await sock.sendMessage(
         jid,
         {
           text: bodyText || ' ',
@@ -455,17 +450,15 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
         },
         options
       );
-      return;
     } catch (legacyError) {
       if (shouldStripQuotedFallback) {
         try {
-          await sock.sendMessage(jid, {
+          return await sock.sendMessage(jid, {
             text: bodyText || ' ',
             footer: footerText,
             buttons: legacyButtons,
             headerType: 1,
           });
-          return;
         } catch (retryLegacyError) {
           console.warn('[WA] legacy buttons retry without quoted failed:', retryLegacyError.message);
         }
@@ -474,7 +467,7 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
       // Last fallback when mixed media+buttons payload cannot be composed by the WA client.
       if (mediaField) {
         await sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
-        await sock.sendMessage(
+        return sock.sendMessage(
           jid,
           {
             text: footerText || 'Choose an option:',
@@ -483,11 +476,9 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
           },
           options
         );
-        return;
       }
 
-      await sendFinalFallback();
-      return;
+      return sendFinalFallback();
     }
   }
 }

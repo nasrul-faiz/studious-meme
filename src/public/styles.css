@@ -1614,6 +1614,10 @@ body.wa-ready #wa-qr-connected-banner {
   font-weight: 600;
 }
 
+#wa-qr-wrap.is-connected .qr-frame {
+  animation: none;
+}
+
 body.wa-ready #wa-qr-empty,
 body.wa-ready #account-target-tips {
   display: none !important;
@@ -1704,78 +1708,34 @@ body.wa-ready #account-target-tips {
 
 .qr-frame {
   position: relative;
-  width: min(340px, 82vw);
+  width: min(368px, 86vw);
   aspect-ratio: 1 / 1;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  padding: 14px;
+  border-radius: 20px;
+  padding: 16px;
   background: color-mix(in srgb, var(--panel-bg) 96%, transparent);
   border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--shadow) 35%, transparent);
+  box-shadow:
+    0 14px 32px color-mix(in srgb, var(--shadow) 38%, transparent),
+    0 2px 8px color-mix(in srgb, var(--shadow) 22%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent);
   overflow: hidden;
+  animation: qrFrameGlow 3.4s ease-in-out infinite;
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
-
-.qr-corner {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 2px solid color-mix(in srgb, var(--primary) 78%, var(--foreground));
-  z-index: 2;
-}
-
-.qr-corner-tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
-.qr-corner-tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
-.qr-corner-bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
-.qr-corner-br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
 
 .qr-frame .qr {
   width: 100%;
   height: 100%;
   border-radius: 12px;
-  padding: 10px;
+  padding: 12px;
   background: #ffffff;
   border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--shadow) 18%, transparent);
   object-fit: contain;
   z-index: 1;
-}
-
-.qr-skeleton {
-  position: absolute;
-  inset: 14px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  gap: 10px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  color: color-mix(in srgb, var(--muted-foreground) 88%, var(--foreground));
-  z-index: 3;
-}
-
-.qr-skeleton-icon {
-  width: 70px;
-  height: 70px;
-  animation: qrPulse 1.6s ease-in-out infinite;
-}
-
-.qr-skeleton-label {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.qr-scan-line {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  top: 18px;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 70%, transparent);
-  animation: qrScan 2.1s linear infinite;
-  z-index: 4;
 }
 
 .qr-timer-row {
@@ -1842,15 +1802,21 @@ body.wa-ready #account-target-tips {
   width: 100%;
 }
 
-@keyframes qrPulse {
-  0%, 100% { opacity: 0.55; transform: scale(0.97); }
-  50% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes qrScan {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(calc(min(340px, 82vw) - 40px)); }
-  100% { transform: translateY(0); }
+@keyframes qrFrameGlow {
+  0%, 100% {
+    box-shadow:
+      0 14px 32px color-mix(in srgb, var(--shadow) 38%, transparent),
+      0 2px 8px color-mix(in srgb, var(--shadow) 22%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #ffffff 12%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 16px 36px color-mix(in srgb, var(--shadow) 42%, transparent),
+      0 2px 10px color-mix(in srgb, var(--shadow) 24%, transparent),
+      0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #ffffff 14%, transparent);
+  }
 }
 
 .linked-phone-wrap {

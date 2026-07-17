@@ -48,8 +48,6 @@ const waQrInstructions = document.getElementById('wa-qr-instructions');
 const waQrConnectedBanner = document.getElementById('wa-qr-connected-banner');
 const waQrActions = document.getElementById('wa-qr-actions'); // may be null in new UI
 const waQrFrameWrap = document.getElementById('waQrFrameWrap');
-const waQrSkeleton = document.getElementById('waQrSkeleton');
-const waQrScanLine = document.getElementById('waQrScanLine');
 const refreshQrBtn = document.getElementById('refreshQrBtn');
 const waQrMeta = document.getElementById('waQrMeta');
 const waQrCountdown = document.getElementById('waQrCountdown');
@@ -2042,8 +2040,6 @@ function renderWhatsAppState(state) {
       waQrWrap.hidden = true;
       waQrWrap.classList.add('is-connected');
       if (waQrFrameWrap) waQrFrameWrap.hidden = true;
-      if (waQrSkeleton) waQrSkeleton.hidden = true;
-      if (waQrScanLine) waQrScanLine.hidden = true;
       if (waQrConnectedBanner) waQrConnectedBanner.hidden = false;
       if (waQrInstructions) waQrInstructions.hidden = true;
       if (waQrActions) waQrActions.hidden = true;
@@ -2073,8 +2069,6 @@ function renderWhatsAppState(state) {
       waQrWrap.hidden = false;
       waQrWrap.classList.remove('is-connected');
       if (waQrFrameWrap) waQrFrameWrap.hidden = false;
-      if (waQrSkeleton) waQrSkeleton.hidden = true;
-      if (waQrScanLine) waQrScanLine.hidden = false;
       if (waQrConnectedBanner) waQrConnectedBanner.hidden = true;
       if (waQrInstructions) waQrInstructions.hidden = false;
       if (waQrActions) waQrActions.hidden = false;
@@ -2107,8 +2101,6 @@ function renderWhatsAppState(state) {
       waQrWrap.hidden = true;
       waQrWrap.classList.remove('is-connected');
       if (waQrFrameWrap) waQrFrameWrap.hidden = true;
-      if (waQrSkeleton) waQrSkeleton.hidden = true;
-      if (waQrScanLine) waQrScanLine.hidden = true;
       if (waQrConnectedBanner) waQrConnectedBanner.hidden = true;
       if (waQrInstructions) waQrInstructions.hidden = false;
       if (waQrActions) waQrActions.hidden = false;
