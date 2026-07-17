@@ -357,15 +357,6 @@ function getPublicBaseUrl() {
   return 'http://localhost:3000';
 }
 
-function getAliveMenuUrl() {
-  const configuredUrl = normalizeWebUrl(process.env.ALIVE_MENU_URL || process.env.BOT_MENU_URL);
-  if (configuredUrl) {
-    return configuredUrl;
-  }
-
-  return `${getPublicBaseUrl()}/#custom-commands`;
-}
-
 function normalizeConnectedJid(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
@@ -497,7 +488,6 @@ class WhatsAppService {
     this.lastConnectionNotificationAt = 0;
     this.connectionNotificationCooldownMs = Number(process.env.WA_CONNECTION_NOTIFY_COOLDOWN_MS || 60000);
     this.extractedTextStorage = new Map();
-    this.alivePromptMessageKeyByChat = new Map();
     this.recentMessageCache = new Map();
     this.recentMessageCacheWindowMs = Number(process.env.WA_RECENT_MESSAGE_CACHE_WINDOW_MS || 15 * 60 * 1000);
   }
@@ -1499,16 +1489,6 @@ class WhatsAppService {
     const normalized = String(text || '').trim();
     const command = normalized.split(/\s+/)[0].toLowerCase();
 
-    if (command === '.alive' || command === '!alive') {
-      await this.handleAliveCommand(chatId);
-      return true;
-    }
-
-    if (command === '.alive_menu' || command === '!alive_menu') {
-      await this.handleAliveMenuCommand(chatId);
-      return true;
-    }
-
     if (command === '.schedule' || command === '!schedule' || command === '.sch' || command === '!sch') {
       await this.handleScheduleCommand(chatId, message, normalized);
       return true;
@@ -1575,66 +1555,6 @@ class WhatsAppService {
     }
 
     return false;
-  }
-
-  async handleAliveCommand(chatId) {
-    if (!this.sock) return;
-
-    const sentMessage = await sendInteractiveButtons(this.sock, chatId, {
-      text: '✅ Bot is alive.',
-      buttons: [
-        {
-          name: 'quick_reply',
-          buttonParamsJson: JSON.stringify({
-            id: '.alive_menu',
-            display_text: 'Menu',
-          }),
-        },
-      ],
-    });
-
-    const sentKey = sentMessage?.key;
-    if (sentKey?.id) {
-      this.alivePromptMessageKeyByChat.set(chatId, {
-        remoteJid: sentKey.remoteJid || chatId,
-        fromMe: true,
-        id: sentKey.id,
-      });
-    }
-  }
-
-  async handleAliveMenuCommand(chatId) {
-    if (!this.sock) return;
-
-    const lastAlivePromptKey = this.alivePromptMessageKeyByChat.get(chatId);
-
-    if (lastAlivePromptKey?.id) {
-      try {
-        await this.sock.sendMessage(chatId, {
-          text: 'Click button below to see menu.',
-          edit: lastAlivePromptKey,
-        });
-      } catch (error) {
-        console.warn('[WA] Failed to edit .alive message:', error.message);
-      }
-    }
-
-    const menuUrl = getAliveMenuUrl();
-    await sendInteractiveButtons(this.sock, chatId, {
-      text: 'Menu link:',
-      buttons: [
-        {
-          name: 'cta_url',
-          buttonParamsJson: JSON.stringify({
-            display_text: 'Open Menu',
-            url: menuUrl,
-            merchant_url: menuUrl,
-          }),
-        },
-      ],
-    });
-
-    this.alivePromptMessageKeyByChat.delete(chatId);
   }
 
   async sendBuiltInUsageMessage(chatId, key) {
