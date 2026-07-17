@@ -303,15 +303,16 @@ async function sendInteractiveButtons(sock, jid, payload, options = {}) {
     );
 
     await sock.relayMessage(jid, msg.message, { messageId: msg.key.id });
-  esend media first, then response text together with button message to ensure both are delivered reliably.
-awaidield) {
+  }
+
+  // Send media first, then response text together with button message to ensure both are delivered reliably.
+  if (mediaField) {
+    try {
       await sock.sendMessage(jid, { ...mediaField }, options);
     } catch (mediaError) {
-      awai houldStripQuotedFallback) throw mediaError;
-
-      awaiasock.sendMessage(jid, { ...mediaField });
+      if (shouldStripQuotedFallback) throw mediaError;
+      await sock.sendMessage(jid, { ...mediaField });
     }
-    return;
 
     try {
       await relayNativeFlow(buttonMessageText, footerText);
@@ -320,74 +321,66 @@ awaidield) {
       console.warn('[WA] media follow-up nativeFlow relay failed:', nativeFlowError.message);
     }
 
-   tr;
-      return
+    try {
       await sock.sendMessage(
         jid,
         {
           text: buttonMessageText,
-     oter: footerText,;
-      return
-     teractiveButtons: nativeButtons,
+          footer: footerText,
+          interactiveButtons: nativeButtons,
         },
         options
       );
       return;
-   } (interactiveError) {
+    } catch (interactiveError) {
       console.warn('[WA] media follow-up interactiveButtons failed:', interactiveError.message);
 
-      i;
-      returnf (shouldStripQuotedFallback) {
+      if (shouldStripQuotedFallback) {
         try {
           await sock.sendMessage(jid, {
             text: buttonMessageText,
-       ;
-      return     footer: footerText,
+            footer: footerText,
             interactiveButtons: nativeButtons,
-         
+          });
           return;
         } catch (retryInteractiveError) {
           console.warn('[WA] media follow-up interactiveButtons retry failed:', retryInteractiveError.message);
-       };
-          return
+        }
       }
     }
-;
-          return
+
     if (legacyButtons.length) {
       try {
         await sock.sendMessage(
           jid,
           {
-       xt: buttonMessageText,
+            text: buttonMessageText,
             footer: footerText,
             buttons: legacyButtons,
-       aderType: 1,
+            headerType: 1,
           },
           options
         );
         return;
       } catch (buttonError) {
-        i;
-        returnf (!shouldStripQuotedFallback) throw buttonError;
+        if (!shouldStripQuotedFallback) throw buttonError;
 
-        a;
-        returnwait sock.sendMessage(jid, {
-          text: buttonMessageText,
-        awaifer: footerText,
-          buttons: legacyButtons,
-        awaiherType: 1,
-        });
-        return;
-      };
-        return
-    };
-        return
+        try {
+          await sock.sendMessage(jid, {
+            text: buttonMessageText,
+            footer: footerText,
+            buttons: legacyButtons,
+            headerType: 1,
+          });
+          return;
+        } catch (retryButtonError) {
+          console.warn('[WA] media follow-up legacy buttons retry failed:', retryButtonError.message);
+        }
+      }
+    }
 
     // If legacy button format is unavailable, still send a text fallback.
     await sock.sendMessage(jid, { text: buttonMessageText }, options);
-    await;
-    await;
     return;
   }
 
@@ -395,22 +388,17 @@ awaidield) {
 
   async function sendFinalFallback() {
     if (mediaField) {
-      awaiaock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
+      await sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
       return;
-      return;
-      return;
-    awai
-awai
+    }
     await sock.sendMessage(jid, { text: bodyText || ' ' }, options);
   }
-;
-    return
- tr;
-    return
+
+  try {
     await relayNativeFlow(bodyText || ' ', footerText);
     return;
   } catch (nativeFlowError) {
-   e.warn('[WA] nativeFlow relay failed, trying interactiveButtons:', nativeFlowError.message);
+    console.warn('[WA] nativeFlow relay failed, trying interactiveButtons:', nativeFlowError.message);
   }
 
   try {
@@ -419,84 +407,71 @@ awai
       {
         ...mediaField,
         [bodyKey]: bodyText || ' ',
-     ;
-    return   footer: footerText,
+        footer: footerText,
         interactiveButtons: nativeButtons,
-     ;
-    return },
+      },
       options
     );
     return;
- } catcor) {
+  } catch (error) {
     // Fallback for Baileys variants that do not support interactiveButtons in sendMessage.
     console.warn('[WA] interactiveButtons via sendMessage failed, trying legacy buttons:', error.message);
 
     if (shouldStripQuotedFallback) {
-      try ;
-        return{
+      try {
         await sock.sendMessage(jid, {
           ...mediaField,
-          ;
-        return[bodyKey]: bodyText || ' ',
+          [bodyKey]: bodyText || ' ',
           footer: footerText,
           interactiveButtons: nativeButtons,
-      awai}
-      return;
+        });
         return;
       } catch (retryError) {
         console.warn('[WA] interactiveButtons retry without quoted failed:', retryError.message);
-      
-      return;
+      }
     }
 
     if (!legacyButtons.length) {
-      endFinalFallback();
+      await sendFinalFallback();
       return;
     }
 
-    try;
-      return {
+    try {
       await sock.sendMessage(
         jid,
         {
-          odyText || ' ',
-       ;
-      return   footer: footerText,
+          ...mediaField,
+          text: bodyText || ' ',
+          footer: footerText,
           buttons: legacyButtons,
           headerType: 1,
-        },;
-          return
-        op
+        },
+        options
       );
       return;
     } catch (legacyError) {
       if (shouldStripQuotedFallback) {
-        try ;
-          return{
+        try {
           await sock.sendMessage(jid, {
-        awai xt: bodyText || ' ',
+            text: bodyText || ' ',
             footer: footerText,
             buttons: legacyButtons,
             headerType: 1,
           });
           return;
         } catch (retryLegacyError) {
-        awaicole.warn('[WA] legacy buttons retry without quoted failed:', retryLegacyError.message);
+          console.warn('[WA] legacy buttons retry without quoted failed:', retryLegacyError.message);
         }
-        return;
       }
 
-      awai t fallback when mixe;
-      returnd media+buttons payload cannot be composed by the WA client.
+      // Final fallback when mixed media+buttons payload cannot be composed by the WA client.
       if (mediaField) {
         await sock.sendMessage(jid, { ...mediaField, caption: bodyText || undefined }, options);
         await sock.sendMessage(
           jid,
-        return;
           {
             text: footerText || 'Choose an option:',
-      awai buttons: legacyButto;
-      returnns,
+            buttons: legacyButtons,
             headerType: 1,
           },
           options
